@@ -1,0 +1,45 @@
+{% set version = "1.0.0" %}
+
+package:
+  name: libsimpleitk
+  version: "{{version}}"
+
+source:
+  git_url: git://itk.org/SimpleITK.git
+  git_tag:  v{{version}}
+
+build:
+    number: 0
+
+requirements:
+  build:
+    - cmake    >=3.3
+    - libtiff  4.0.*
+    - libpng   >=1.6.27,<1.7
+    - jpeg     9*
+    - zlib     1.2.*
+    - vc 9  # [win and py27]
+    - vc 10  # [win and py34]
+    - vc 14  # [win and py35]
+  run:
+    - libtiff  4.0.*
+    - libpng   >=1.6.27,<1.7
+    - jpeg     9*
+    - zlib     1.2.*
+    - vc 9  # [win and py27]
+    - vc 10  # [win and py34]
+    - vc 14  # [win and py35]
+
+test:
+  commands:
+    - echo "Testing..."
+
+about:
+  home: http::/www.simpleitk.org
+  license: Apache 2.0
+  summary: Simplified interface to the Insight Toolkit for image registration and segmentation
+
+extra:
+    recipe-maintainers:
+      - blowekamp
+      - zivy
