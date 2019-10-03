@@ -14,6 +14,17 @@ cd ${BUILD_DIR}
 PYTHON_INCLUDE_DIR=$(${PYTHON} -c 'import sysconfig;print("{0}".format(sysconfig.get_path("platinclude")))')
 PYTHON_LIBRARY=$(${PYTHON} -c 'import sysconfig;print("{0}/{1}".format(*map(sysconfig.get_config_var, ("LIBDIR", "LDLIBRARY"))))')
 
+ITK_TAG="v5.1b01"
+CMAKE_ARGS="${CMAKE_ARGS} \
+    -D ITK_GIT_TAG:STRING=${ITK_TAG} \
+    -D ITKV4_COMPATIBILITY:BOOL=ON \
+    -D ITK_LEGACY_REMOVE:BOOL=OFF \
+    -D ITK_USE_FFTWD:BOOL=ON \
+    -D ITK_USE_FFTWF:BOOL=ON \
+    -D ITK_USE_SYSTEM_FFTW:BOOL=ON \
+    -D Module_SCIFIO:BOOL=ON \
+    "
+
 cmake \
     -G Ninja \
     ${CMAKE_ARGS} \
@@ -50,5 +61,26 @@ cmake \
 
 cmake --build  . --config Release
 
-cd ${BUILD_DIR}/SimpleITK-build/Wrapping/Python
-${PYTHON} Packaging/setup.py install
+( cd ${BUILD_DIR}/SimpleITK-build/Wrapping/Python &&
+      ${PYTHON} Packaging/setup.py install)
+
+
+# patch SimpleITK install with SCIFIO jars
+
+PKG_DIR=$(${PYTHON} -c "from __future__ import print_function; import SimpleITK; import os; print(os.path.dirname(os.path.abspath(SimpleITK.__file__)))")
+( cd ${BUILD_DIR} && cp -rv ./ITK-build/lib/jars/ ${PKG_DIR} )
+
+
+simpleitk_patch="
+import os
+
+# path to bioformats_package.jar and scifio-itk-bridge.jar
+os.environ['SCIFIO_PATH'] = os.path.dirname(os.path.abspath(SimpleITK.__file__))+'/jars'
+
+#increase the maximum JVM heap size to 16Gb, working with large images
+os.environ['JAVA_FLAGS'] = '-Xmx16g'
+
+del os
+"
+
+echo "${simpleitk_patch}" >> ${PKG_DIR}/__init__.py

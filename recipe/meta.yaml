@@ -1,7 +1,7 @@
 {% set name = "simpleitk" %}
 {% set version = "1.2.2" %}
 {% set sha256 = "0af7387bd42bb535572b2c6c3b4ba0f9211e82a045d40ec2df507b73d5781231" %}
-{% set build_number = 1 %}
+{% set build_number = 3 %}
 
 package:
   name: simpleitk
@@ -31,11 +31,14 @@ requirements:
     - setuptools
     - libtiff
     - libpng
+    - openjdk
+    - fftw
     - jpeg
     - zlib
 
   run:
     - vs2015_runtime  # [win]
+    - openjdk     =8
     - python
     - {{ pin_compatible('libtiff', max_pin='x.x') }}
     - {{ pin_compatible('libpng', max_pin='x.x') }}
