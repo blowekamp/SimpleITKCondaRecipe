@@ -145,7 +145,7 @@ jobs:
         pip3 install anaconda-client
 
 
-        anaconda upload --no-progress --user $(ANCACONDA_ORGANIZATION) --label ${ANACONDA_LABEL} ./artifact/*/*.tar.bz2
+        anaconda upload --no-progress --user ${ANCACONDA_ORGANIZATION} --label ${ANACONDA_LABEL} ./artifact/*/*.tar.bz2
 
       env:
           ANCACONDA_ORGANIZATION: simpleitk
