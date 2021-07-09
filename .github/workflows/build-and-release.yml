@@ -4,14 +4,6 @@ on:
   push:
     branches: [ master ]
   pull_request:
-  workflow_dispatch:
-    inputs: 
-      anaconda-tag:
-        description: 'Tag for anaconda'
-        default: 'dev'
-      skip-build:
-        description: 'Skip build steps to directly upload'
-        default: 'false'
 
 env:
   conda_version: 4.7.5
@@ -21,7 +13,6 @@ jobs:
     strategy:
       matrix:
         python_version: [3.6, 3.7, 3.8, 3.9]
-    if: ${{ github.event.inputs.skip-build != 'true' }}
     runs-on: windows-2016
 
     steps:
@@ -57,7 +48,6 @@ jobs:
     strategy:
       matrix:
         python_version: [3.6, 3.7, 3.8, 3.9]
-    if: ${{ github.event.inputs.skip-build != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -137,12 +127,11 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           path: "${{github.workspace}}/channel/*/simpleitk*.tar.bz2"
-  
+
   publish:
-    environment: 
+    environment:
       name: release
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip-build == 'false' }}
     needs: [build-windows, build-linux, build-mac]
 
     steps:
@@ -162,29 +151,3 @@ jobs:
           ANCACONDA_ORGANIZATION: simpleitk
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
           ANACONDA_LABEL: dev
-
-  publish-no-build:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip-build == 'true' }}
-
-    steps:
-    - uses: dawidd6/action-download-artifact@v2
-      with: 
-        workflow_conclusion: success
-        workflow: windows.yml
-    - name: Verify files
-      run: ls -LR
-    - name: Sign into anaconda and upload
-      run: |
-        pip3 uninstall urllib3 && pip3 install --upgrade urllib3
-        pip3 install --upgrade requests
-        pip3 install anaconda-client
-        anaconda login --username '${{ secrets.conda_user }}' --password '${{ secrets.conda_password }}' --hostname $(cat /proc/sys/kernel/random/uuid)
-        anaconda upload --force ./artifact/*/*.tar.bz2 --label ${{ github.event.inputs.anaconda-tag }} 
-    - name: Always logout
-      if: always()
-      run: anaconda logout
-    - name: Republishing artifact...
-      uses: actions/upload-artifact@v2
-      with:
-        path: "artifact/*/simpleitk*.tar.bz2"
